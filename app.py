@@ -60,7 +60,7 @@ def handle_image(event):
         message_content = line_bot_api.get_message_content(message_id)
         image = BytesIO(message_content.content)
 
-        detected_faces = face_client.face.detect_with_staream(image)
+        detected_faces = face_client.face.detect_with_stream(image)
         print(detected_faces)
         if detected_faces !=[]:
             text = detected_faces[0].face_id
@@ -70,19 +70,19 @@ def handle_image(event):
                 person_id = PERSON_ID_AUDREY
             ) 
             if valified:
-                if valified_identical:
+                if valified.is_identical:
                     text = 'この写真は大谷 翔平です(score:{:.3f})'.format(valified.confidence)
                 else:
                     text = 'この写真は大谷 翔平ではありません(score:{:.3f})'.format(valified.confidence)
         else:    
             text = "写真から顔が検出出来ませんでした。他の画像で試してください。"
-     except:     
+    except:
          text = "エラーが発生しました。"
 
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=text)
         )
-        
+
 if __name__ == "__main__":
     app.run()
