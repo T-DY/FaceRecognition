@@ -1,10 +1,7 @@
 import os
 from flask import Flask, request, abort
-
 from linebot.models import ImageMessage
-
 from io import BytesIO
-
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -23,10 +20,12 @@ YOUR_FACE_API_KEY = os.environ['YOUR_FACE_API_KEY']
 YOUR_FACE_API_ENDPOINT = os.environ['YOUR_FACE_API_ENDPOINT']
 YOUR_CHANNEL_ACCESS_TOKEN = os.getenv('YOUR_CHANNEL_ACCESS_TOKEN')
 YOUR_CHANNEL_SECRET = os.getenv('YOUR_CHANNEL_SECRET')
+PERSON_GROUP_ID = os.environ('PERSON_GROUP_ID')
+PERSON_ID_AUDREY = os.getenv('PERSON_ID_AUDREY')
 
 face_client = FaceClient(YOUR_FACE_API_ENDPOINT,CognitiveServicesCredentials(YOUR_FACE_API_KEY))
-line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler('YOUR_CHANNEL_SECRET')
+line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
 
 @app.route("/callback", methods=['POST'])
@@ -50,6 +49,12 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=event.message.text))
+
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
     try:
         message_id = event.message.id
         message_content = line_bot_api.get_message_content(message_id)
@@ -57,17 +62,27 @@ def handle_message(event):
 
         detected_faces = face_client.face.detect_with_staream(image)
         print(detected_faces)
-        if detected_faces != []:
-            text = detected_faces[0].face.id
-        else:
-            text = "no faces detected"
-    except:
-        text = "error"
+        if detected_faces !=[]:
+            text = detected_faces[0].face_id
+            valified = face_client.face.verify_face_to_person(
+                face_id = detected_faces[0].face_id,
+                person_group_id = PERSON_GROUP_ID,
+                person_id = PERSON_ID_AUDREY
+            ) 
+            if valified:
+                if valified_identical:
+                    text = 'この写真は大谷 翔平です(score:{:.3f})'.format(valified.confidence)
+                else:
+                    text = 'この写真は大谷 翔平ではありません(score:{:.3f})'.format(valified.confidence)
+        else:    
+            text = "写真から顔が検出出来ませんでした。他の画像で試してください。"
+     except:     
+         text = "エラーが発生しました。"
 
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text))
-
-
+        TextSendMessage(text=text)
+        )
+        
 if __name__ == "__main__":
     app.run()
