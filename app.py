@@ -61,7 +61,7 @@ def handle_image(event):
         image = BytesIO(message_content.content)
 
         detected_faces = face_client.face.detect_with_stream(image)
-        print(detected_faces)
+        
         if detected_faces !=[]:
             text = detected_faces[0].face_id
             valified = face_client.face.verify_face_to_person(
