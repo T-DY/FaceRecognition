@@ -1,6 +1,5 @@
 import os
 from flask import Flask, request, abort
-from linebot.models import ImageMessage
 from io import BytesIO
 from linebot import (
     LineBotApi, WebhookHandler
@@ -9,7 +8,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, TextMessage, TextSendMessage,ImageMessage
 )
 from azure.cognitiveservices.vision.face import FaceClient
 from msrest.authentication import CognitiveServicesCredentials
@@ -62,7 +61,7 @@ def handle_image(event):
 
         detected_faces = face_client.face.detect_with_stream(image)
         
-        if detected_faces !=[]:
+        if detected_faces != []:
             text = detected_faces[0].face_id
             valified = face_client.face.verify_face_to_person(
                 face_id = detected_faces[0].face_id,
