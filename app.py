@@ -57,13 +57,13 @@ def handle_message(event):
 
         detected_faces = face_client.face.detect_with_staream(image)
         print(detected_faces)
-        if detected_faces !=[]:
+        if detected_faces != []:
             text = detected_faces[0].face.id
         else:
             text = "no faces detected"
     except:
         text = "error"
-        
+
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=event.message.text))
